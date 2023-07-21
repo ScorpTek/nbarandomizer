@@ -1,0 +1,12 @@
+{
+  "name": "GPTPrompt",
+  "version": "1.0.0",
+  "description": "A Node.js app to work with prompts",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^0.21.4"
+  }
+}
