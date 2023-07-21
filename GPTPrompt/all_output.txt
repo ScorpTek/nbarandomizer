@@ -1,0 +1,172 @@
+Given the requirements and assumptions, we will be using Python with Flask for the backend, and JavaScript with React for the frontend. We will also use SQLite for the database, and OpenAI's Python client to interact with the GPT API. 
+
+Here are the core classes, functions, and methods that will be necessary:
+
+1. User class (models.py): Represents a user in the system. It will have methods for password hashing and checking.
+2. Prompt class (models.py): Represents a prompt in the system. It will have methods for saving, editing, and deleting prompts.
+3. User routes (routes.py): These will handle user registration, login, and password management.
+4. Prompt routes (routes.py): These will handle prompt creation, editing, deletion, and viewing history.
+5. GPT API interaction (gpt.py): This will handle sending prompts to the GPT API and receiving responses.
+6. Parameter adjustment (gpt.py): This will handle adjusting the GPT model's parameters.
+7. User interface (App.js): This will handle displaying the user interface and interacting with the backend.
+
+Now, let's start with the "entrypoint" file, which is the main application file in Flask.
+
+app.py
+```python
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your-secret-key'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+
+from routes import *
+
+if __name__ == "__main__":
+    app.run(debug=True)
+```
+
+Next, we'll define the User and Prompt classes in models.py.
+
+models.py
+```python
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
+from app import db, login_manager
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128))
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+class Prompt(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+```
+
+Next, we'll define the routes for user registration, login, and password management in routes.py.
+
+routes.py
+```python
+from flask import render_template, url_for, flash, redirect, request
+from flask_login import login_user, current_user, logout_user, login_required
+from app import app, db
+from models import User, Prompt
+from forms import RegistrationForm, LoginForm, UpdateAccountForm, PromptForm
+from gpt import generate_text
+
+@app.route("/register", methods=['GET', 'POST'])
+def register():
+    # Registration logic here
+
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    # Login logic here
+
+@app.route("/logout")
+def logout():
+    # Logout logic here
+
+@app.route("/account", methods=['GET', 'POST'])
+@login_required
+def account():
+    # Account update logic here
+
+@app.route("/prompt", methods=['GET', 'POST'])
+@login_required
+def new_prompt():
+    # Prompt creation logic here
+
+@app.route("/prompt/<int:prompt_id>")
+@login_required
+def prompt(prompt_id):
+    # Prompt viewing logic here
+
+@app.route("/prompt/<int:prompt_id>/update", methods=['GET', 'POST'])
+@login_required
+def update_prompt(prompt_id):
+    # Prompt update logic here
+
+@app.route("/prompt/<int:prompt_id>/delete", methods=['POST'])
+@login_required
+def delete_prompt(prompt_id):
+    # Prompt deletion logic here
+
+@app.route("/history")
+@login_required
+def history():
+    # History viewing logic here
+```
+
+Next, we'll define the functions for interacting with the GPT API and adjusting parameters in gpt.py.
+
+gpt.py
+```python
+import openai
+
+openai.api_key = 'your-api-key'
+
+def generate_text(prompt, temperature, max_tokens, top_p):
+    response = openai.Completion.create(
+        engine="text-davinci-002",
+        prompt=prompt,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        top_p=top_p
+    )
+    return response.choices[0].text.strip()
+```
+
+Finally, we'll define the user interface in App.js.
+
+App.js
+```javascript
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import NavigationBar from './components/NavigationBar';
+import Home from './components/Home';
+import Register from './components/Register';
+import Login from './components/Login';
+import Account from './components/Account';
+import NewPrompt from './components/NewPrompt';
+import Prompt from './components/Prompt';
+import UpdatePrompt from './components/UpdatePrompt';
+import History from './components/History';
+
+function App() {
+  return (
+    <Router>
+      <NavigationBar />
+      <Switch>
+        <Route path="/" exact component={Home} />
+        <Route path="/register" component={Register} />
+        <Route path="/login" component={Login} />
+        <Route path="/account" component={Account} />
+        <Route path="/prompt/new" component={NewPrompt} />
+        <Route path="/prompt/:id" component={Prompt} />
+        <Route path="/prompt/:id/update" component={UpdatePrompt} />
+        <Route path="/history" component={History} />
+      </Switch>
+    </Router>
+  );
+}
+
+export default App;
+```
+
+Please note that this is a simplified version of the code and does not include all the necessary error handling, form validation, and other features that a production-ready application would need.
