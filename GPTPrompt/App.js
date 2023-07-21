@@ -9,8 +9,12 @@ import NewPrompt from './components/NewPrompt';
 import Prompt from './components/Prompt';
 import UpdatePrompt from './components/UpdatePrompt';
 import History from './components/History';
+import prompts from './promptsData'; // Import the prompts data
 
 function App() {
+  // Use the prompts data here as needed
+  // For example, you can pass it to components or use it for rendering dynamic routes
+
   return (
     <Router>
       <NavigationBar />
